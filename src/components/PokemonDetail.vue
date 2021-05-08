@@ -15,7 +15,7 @@
           <div class="right">{{ pokemon.height / 10 }} m</div>
         </div>
         <div class="property">
-          <div class="left">Poids</div>
+          <div class="left">Largeur</div>
           <div class="right">{{ pokemon.weight / 10 }} kg</div>
         </div>
         <h3>Pokemon de types :</h3>
@@ -51,8 +51,7 @@
     data: () => {
       return {
         show: false,
-        pokemon: {},
-       // params: this.$route.params.name
+        pokemon: {}
       }      
     },
     methods: {
