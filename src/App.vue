@@ -1,7 +1,9 @@
   
 <template>
   <div id="app">
+    <!--<Pokemon />-->
     <PremierePage />
+    <!--<router-view/>-->
   </div>
 </template>
 
