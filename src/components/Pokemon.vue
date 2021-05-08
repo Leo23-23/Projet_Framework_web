@@ -4,6 +4,9 @@
         <router-link to="/">Retour</router-link>
         <router-view/>
       </nav> 
+      <!--<PokemonSearch 
+      :apiUrl="apiUrl" 
+      @setPokemonUrl="setPokemonUrl" />-->
     <PokemonList 
       :imageUrl="imageUrl" 
       :apiUrl="apiUrl"
@@ -17,6 +20,7 @@
 </template>
 
 <script>
+  import PokemonSearch from './PokemonSearch.vue';
   import PokemonList from './PokemonList.vue';
   import PokemonDetail from './PokemonDetail.vue';
   export default {
@@ -29,6 +33,7 @@
       }
     },
     components: {
+      PokemonSearch,
       PokemonList,
       PokemonDetail
     },
