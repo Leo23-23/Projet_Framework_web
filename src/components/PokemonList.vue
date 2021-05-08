@@ -1,74 +1,92 @@
 <template>
-    <div class="searchbar">
-        <form @submit.prevent="setPokemonUrl">
-            <input type="text" placeholder="Rechercher par nom...." v-model="searchvalue">
-        </form>
-        <i class="fas fa-search" @click="setPokemonUrl"></i>
-    </div>
- <div class="buton">
-    <button v-if="pokemons.previous" @click="act_prev">Previous</button>
-    <button v-if="pokemons.next" @click="act_next">Next</button>
-</div>
-<div class="container">
-    <div class="list">
-    <article v-for ="pokemon in pokemons.results /*filteredList*/" :key="pokemon" @click="setPokemonUrl1(pokemon.url)">
-        <img :src="imageUrl + edit_lien_image (pokemon.url)" width="96" height="96" alt="" > 
-        <h3>{{pokemon.name}}</h3>
-    </article> 
+<div class="searchbar">
+    <form @submit.prevent="setPokemonUrl">
+      <input type="text" placeholder="Rechercher par nom...." v-model="searchvalue">
+    </form>
+    <i class="fas fa-search" @click="setPokemonUrl"></i>
+  </div>
+  <div class="list">
+    <article v-for="(pokemon, index) in filteredList"
+    :key="'poke'+index"
+    @click="setPokemonUrl1(pokemon.url)">
+      <img :src="imageUrl + pokemon.id + '.png'" width="96" height="96" alt="">
+      <h3>{{ pokemon.name }}</h3>
+    </article>
+    <div id="scroll-trigger" ref="infinitescrolltrigger">
+      <i class="fas fa-spinner fa-spin"></i>
     </div>
   </div>
-    
 </template>
-<script>
-import { defineComponent } from 'vue'
-import {mapState, mapActions , mapGetters } from 'vuex'
 
-export default defineComponent({
-  props: [
+<script>
+  export default {
+    props: [
       'imageUrl',
       'apiUrl'
     ],
-    data(){
-       return {
-         searchvalue : '',
-        
+    data: () => {
+      return {
+        searchvalue: '',
+        pokemons: [],
+        nextUrl: '',
+        currentUrl: ''
+      }
+    },
+    methods: {
+      fetchData() {
+        let req = new Request(this.currentUrl);
+        fetch(req)
+          .then((resp) => {
+            if(resp.status === 200)
+              return resp.json();
+          })
+          .then((data) => {
+            this.nextUrl = data.next;
+            data.results.forEach(pokemon => {
+              pokemon.id = pokemon.url.split('/')
+                .filter(function(part) { return !!part }).pop();
+              this.pokemons.push(pokemon);
+            });
+          })
+           
+      },
+      scrollTrigger() {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if(entry.intersectionRatio > 0 && this.nextUrl) {
+              this.next();
+            }
+          });
+        });
+        observer.observe(this.$refs.infinitescrolltrigger);
+      },
+      next() {
+        this.currentUrl = this.nextUrl;
+        this.fetchData();
+      },
+      setPokemonUrl1(url) {
+        this.$emit('setPokemonUrl', url);
+      },
+      setPokemonUrl(url) {
+        if(this.searchvalue !== '')
+          this.$emit('setPokemonUrl', this.apiUrl + this.searchvalue);
       }
     },
     computed:{
-      ...mapState(['imageUrl','pokemons','apiUrl','pokemons1']),
-      ...mapGetters(['pokemons','pokemons1']),
       filteredList(){
-        return this.pokemons1.filter((pokemon)=>{
+        return this.pokemons.filter((pokemon)=>{
           return pokemon.name.toLowerCase().includes(this.searchvalue.toLowerCase());
         })
-      },
+      }
     },
-
-        
-    mounted(){
-      this.$store.dispatch("act_fetchdata1");
-      this.$store.dispatch("act_fetchdata");
-        
-        
+    created() {
+      this.currentUrl = this.apiUrl;
+      this.fetchData();
     },
-
-    methods:{
-        edit_lien_image (chaine){
-            return chaine.split('/').filter(function (part){return !!(part)}).pop()+ '.png';
-        },
-        ...mapActions(['act_next','act_prev']),
-        setPokemonUrl1(url) {
-          this.$emit('setPokemonUrl', url);
-        },
-        setPokemonUrl(url) {
-          if(this.searchvalue !== '')
-            this.searchvalue=this.searchvalue.toLowerCase()
-            this.$emit('setPokemonUrl', this.apiUrl  + this.searchvalue);
-      },
-      
+    mounted() {
+      this.scrollTrigger();
     }
-    
-})
+  }
 </script>
 
 <style lang="scss" scoped>
@@ -92,12 +110,14 @@ export default defineComponent({
       }
     }
   }
-  .buton {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    grid-gap: 300px;
+  #scroll-trigger {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 100%;
-
+    height: 150px;
+    font-size: 2rem;
+    color: #efefef;
   }
   .searchbar {
     position: relative;
@@ -123,4 +143,4 @@ export default defineComponent({
       cursor: pointer;
     }
   }
-</style>-->
+</style>
